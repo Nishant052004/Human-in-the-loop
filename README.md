@@ -1,5 +1,6 @@
 # 🛸 HAULT: Human-in-the-Loop DevOps Command Suite
 
+[![Live Demo](https://img.shields.io/badge/Render-Live%20Demo-46E3B7.svg?logo=render&logoColor=white)](https://human-in-the-loop-3thh.onrender.com)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Modern%20Web%20App-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Streamlit](https://img.shields.io/badge/Streamlit-Legacy%20UI-FF4B4B.svg?logo=streamlit&logoColor=white)](https://streamlit.io)
@@ -11,7 +12,11 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 > **Autonomous AI speed meets real-world human judgement.**  
-> HAULT brings enterprise safety, confidence-based escalation, continuous memory learning (RLHF), and an immutable cryptographic audit ledger to AI-driven DevOps automation.
+> HAULT brings enterprise safety, confidence-based escalation, continuous memory learning (RLHF), and an immutable cryptographic audit ledger to AI-driven DevOps automation.  
+>  
+> 🌐 **Live Web Application**: [https://human-in-the-loop-3thh.onrender.com](https://human-in-the-loop-3thh.onrender.com)  
+> 📖 **Interactive API Docs (Swagger)**: [https://human-in-the-loop-3thh.onrender.com/docs](https://human-in-the-loop-3thh.onrender.com/docs)
+
 
 ---
 
@@ -142,6 +147,16 @@ Human-in-the-loop/
 
 ## ⚡ Quickstart Guide
 
+### 🌐 Instant Live Web Application
+Launch and explore HAULT directly in your browser without local installation:
+- **Live Command Center**: **[https://human-in-the-loop-3thh.onrender.com](https://human-in-the-loop-3thh.onrender.com)**
+- **Interactive REST API (Swagger UI)**: **[https://human-in-the-loop-3thh.onrender.com/docs](https://human-in-the-loop-3thh.onrender.com/docs)**
+- **OpenAPI JSON Spec**: **[https://human-in-the-loop-3thh.onrender.com/openapi.json](https://human-in-the-loop-3thh.onrender.com/openapi.json)**
+
+---
+
+### Local Installation
+
 ### Prerequisites
 - Python 3.10 or higher
 - Git installed on your system
@@ -166,7 +181,7 @@ source venv/bin/activate
 
 ### 3. Install Dependencies
 ```bash
-pip install -r requirement.txt
+pip install -r requirements.txt
 ```
 
 ### 4. Configure Environment Variables (Optional)
