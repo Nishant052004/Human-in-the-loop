@@ -16,7 +16,10 @@ api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY", "
 try:
     if api_key:
         genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("models/gemini-2.5-flash")
+        model = genai.GenerativeModel("models/gemini-2.5-flash")
+    else:
+        model = None
 except Exception as e:
     print(f"Warning: Gemini API initialization error: {e}")
-    model = None
+    model = None
+

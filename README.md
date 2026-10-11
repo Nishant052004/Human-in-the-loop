@@ -1,7 +1,8 @@
-﻿# 🛸 HAULT: Human-in-the-Loop DevOps Command Suite
+# 🛸 HAULT: Human-in-the-Loop DevOps Command Suite
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://python.org)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.32%2B-FF4B4B.svg?logo=streamlit&logoColor=white)](https://streamlit.io)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Modern%20Web%20App-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Streamlit](https://img.shields.io/badge/Streamlit-Legacy%20UI-FF4B4B.svg?logo=streamlit&logoColor=white)](https://streamlit.io)
 [![Gemini AI](https://img.shields.io/badge/AI-Google%20Gemini-8E75B2.svg?logo=google&logoColor=white)](https://aistudio.google.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-Manifests-326CE5.svg?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
@@ -95,13 +96,25 @@ flowchart TD
 ```bash
 Human-in-the-loop/
 │
-├── app.py                     # Main Streamlit command center dashboard
+├── server.py                  # Modern FastAPI Web Application & REST Server
+├── app.py                     # Legacy Streamlit Dashboard
 ├── config.py                  # Environment configuration & Gemini model setup
-├── requirement.txt            # Python package dependencies
-├── approval.db                # SQLite database (auto-created on first launch)
+├── requirement.txt            # Python dependencies (FastAPI, Uvicorn, Streamlit, etc.)
+├── approval.db                # SQLite database with WAL mode & self-healing migrations
 ├── Devops_Report.pdf          # Sample generated DevOps compliance report
 ├── .env.example               # Template for environment variables
 ├── .gitignore                 # Standard git ignore patterns
+│
+├── templates/                 # Frontend Web Application Templates
+│   └── index.html             # Futuristic Single-Page Web App UI (Tailwind & Prism)
+│
+├── static/                    # Frontend Static Assets
+│   ├── css/custom.css         # Cyber-enterprise dark theme styling & animations
+│   ├── js/app.js              # Reactive state management, Chart.js, & API integration
+│   └── reports/               # Generated downloadable PDF audit reports
+│
+├── services/                  # Business & learning services
+│   └── preference_service.py  # RLHF preference extraction & policy learner
 │
 ├── agents/                    # Multi-agent core engine
 │   ├── orchestrator.py        # Pipeline orchestrator, simulation, and local fallback
@@ -121,7 +134,8 @@ Human-in-the-loop/
 │
 └── scratch/                   # Developer test scripts
     ├── test_api.py            # Gemini API connectivity test
-    └── test_imports.py        # Internal module and schema validation test
+    ├── test_imports.py        # Internal module and schema validation test
+    └── test_web_api.py        # Web app REST API integration test suite
 ```
 
 ---
@@ -155,14 +169,14 @@ source venv/bin/activate
 pip install -r requirement.txt
 ```
 
-### 4. Configure Environment Variables
+### 4. Configure Environment Variables (Optional)
 Create a `.env` file from the provided template:
 ```bash
 cp .env.example .env
 ```
 Open `.env` and add your keys:
 ```env
-# Gemini API Key (Get from https://aistudio.google.com/)
+# Gemini API Key (Optional - full offline sandbox simulation is supported!)
 GEMINI_API_KEY=your_gemini_api_key_here
 
 # GitHub Personal Access Token (Optional, for public/private repo analysis)
@@ -172,11 +186,15 @@ GITHUB_TOKEN=your_github_token_here
 > **💡 Resilient Offline Fallback:**  
 > If no API key is supplied or API rate limits occur, HAULT automatically engages its **Local Simulation Sandbox Engine**, allowing full feature exploration without an external API!
 
-### 5. Launch the Command Suite
+### 5. Launch the Web Application (Recommended)
 ```bash
-streamlit run app.py
+python server.py
+# or: uvicorn server:app --reload --port 8000
 ```
-Open your browser at `http://localhost:8501` to access the HAULT Dashboard.
+Open your browser at **`http://localhost:8000`** to access the modern HAULT Web App.
+
+> **💡 Legacy Streamlit UI:**  
+> If you prefer the legacy Streamlit interface, you can still launch it via `streamlit run app.py` at `http://localhost:8501`.
 
 ---
 

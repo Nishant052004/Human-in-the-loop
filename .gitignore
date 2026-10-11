@@ -1,4 +1,4 @@
-﻿# Python virtual environments
+# Python virtual environments
 .venv/
 venv/
 env/
@@ -17,7 +17,10 @@ __pycache__/
 # Local SQLite databases
 approval.db
 *.db
+*.db-shm
+*.db-wal
 *.sqlite3
+
 
 # IDE & OS files
 .vscode/
@@ -27,3 +30,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Generated reports
+static/reports/*.pdf
+

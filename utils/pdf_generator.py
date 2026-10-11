@@ -13,9 +13,12 @@ def generate_pdf(
     cicd,
     confidence_score=90,
     risk_level="Low",
-    audit_hash="N/A"
+    audit_hash="N/A",
+    output_path="Devops_Report.pdf"
 ):
-    pdf_file = "Devops_Report.pdf"
+    pdf_file = output_path
+    os.makedirs(os.path.dirname(os.path.abspath(pdf_file)), exist_ok=True)
+
     
     # Setup document
     doc = SimpleDocTemplate(

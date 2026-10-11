@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HAULT // Human-in-the-Loop DevOps Command Suite</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            cyber: {
+              900: '#070B14',
+              800: '#0D1322',
+              700: '#111A2E',
+              600: '#1B2640',
+              teal: '#0D9488',
+              emerald: '#10B981',
+              cyan: '#06B6D4',
+              amber: '#F59E0B',
+              rose: '#F43F5E'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & Prism Code Highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-docker.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/static/css/custom.css">
+</head>
+<body class="bg-[#070B14] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-teal-500 selection:text-white">
+
+  <!-- ============================================================== -->
+  <!-- TOP NAVIGATION HEADER -->
+  <!-- ============================================================== -->
+  <header class="glass-header sticky top-0 z-40 px-6 py-3.5 border-b border-slate-800/80">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      
+      <!-- Brand & Status -->
+      <div class="flex items-center space-x-4">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-teal-500/20">
+          <i data-lucide="shield-check" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-xl font-bold tracking-wider font-mono text-white flex items-center gap-2">
+              HAULT <span class="text-xs px-2 py-0.5 rounded bg-teal-500/20 text-teal-400 border border-teal-500/40">v2.0 WEB</span>
+            </h1>
+          </div>
+          <p class="text-xs text-slate-400">Human-in-the-Loop DevOps Command Suite</p>
+        </div>
+      </div>
+
+      <!-- System Nodes Health Indicators -->
+      <div class="hidden lg:flex items-center space-x-3 text-xs bg-slate-900/80 border border-slate-800 px-3.5 py-1.5 rounded-full">
+        <span class="text-slate-400 font-medium">Nodes:</span>
+        <div class="flex items-center space-x-1.5 text-emerald-400">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span>
+          <span>Planner</span>
+        </div>
+        <span class="text-slate-700">|</span>
+        <div class="flex items-center space-x-1.5 text-emerald-400">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>Coding</span>
+        </div>
+        <span class="text-slate-700">|</span>
+        <div class="flex items-center space-x-1.5 text-emerald-400">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>Critic</span>
+        </div>
+        <span class="text-slate-700">|</span>
+        <div class="flex items-center space-x-1.5 text-emerald-400">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>Sandbox</span>
+        </div>
+        <span class="text-slate-700">|</span>
+        <div class="flex items-center space-x-1.5 text-teal-400">
+          <span class="w-2 h-2 rounded-full bg-teal-400"></span>
+          <span>Ledger</span>
+        </div>
+      </div>
+
+      <!-- Quick Stats & Database Actions -->
+      <div class="flex items-center space-x-3">
+        <div class="hidden sm:flex items-center space-x-2 text-xs">
+          <span id="badge-blocks" class="px-2.5 py-1 rounded-md bg-slate-800 text-teal-400 border border-slate-700 font-mono">Blocks: 0</span>
+          <span id="badge-prefs" class="px-2.5 py-1 rounded-md bg-slate-800 text-emerald-400 border border-slate-700 font-mono">Rules: 0</span>
+          <span id="badge-kb" class="px-2.5 py-1 rounded-md bg-slate-800 text-cyan-400 border border-slate-700 font-mono">RAG: 0</span>
+        </div>
+
+        <div class="relative">
+          <button id="btn-db-menu" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition">
+            <i data-lucide="database" class="w-4 h-4"></i>
+          </button>
+          <div id="db-menu-dropdown" class="hidden absolute right-0 mt-2 w-48 glass-panel rounded-xl py-2 z-50 border border-slate-700 shadow-2xl">
+            <button onclick="repopulateMockData()" class="w-full text-left px-4 py-2 text-xs text-slate-300 hover:text-white hover:bg-teal-500/10 flex items-center gap-2">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-teal-400"></i> Restore Mock Data
+            </button>
+            <button onclick="confirmClearDatabase()" class="w-full text-left px-4 py-2 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 flex items-center gap-2">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-400"></i> Purge Database
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ============================================================== -->
+  <!-- MAIN NAVIGATION TABS -->
+  <!-- ============================================================== -->
+  <nav class="bg-[#0B101E] border-b border-slate-800 px-6 sticky top-[65px] z-30">
+    <div class="max-w-7xl mx-auto flex space-x-1 sm:space-x-3 overflow-x-auto py-2">
+      <button onclick="switchTab('console')" id="tab-btn-console" class="nav-tab nav-tab-active px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 border border-transparent transition">
+        <i data-lucide="cpu" class="w-4 h-4"></i>
+        <span>Agent Console</span>
+      </button>
+
+      <button onclick="switchTab('queue')" id="tab-btn-queue" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-200 border border-transparent transition flex items-center gap-2">
+        <i data-lucide="users" class="w-4 h-4"></i>
+        <span>Auditor Queue</span>
+        <span id="queue-count-badge" class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-amber-500/20 text-amber-300 font-bold">0</span>
+      </button>
+
+      <button onclick="switchTab('memory')" id="tab-btn-memory" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-200 border border-transparent transition flex items-center gap-2">
+        <i data-lucide="brain-circuit" class="w-4 h-4"></i>
+        <span>Memory & RAG</span>
+      </button>
+
+      <button onclick="switchTab('analytics')" id="tab-btn-analytics" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-200 border border-transparent transition flex items-center gap-2">
+        <i data-lucide="activity" class="w-4 h-4"></i>
+        <span>Telemetry & Analytics</span>
+      </button>
+
+      <button onclick="switchTab('blockchain')" id="tab-btn-blockchain" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-200 border border-transparent transition flex items-center gap-2">
+        <i data-lucide="link" class="w-4 h-4"></i>
+        <span>Blockchain Ledger</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ============================================================== -->
+  <!-- MAIN CONTENT CONTAINER -->
+  <!-- ============================================================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+    <!-- ============================================================== -->
+    <!-- TAB 1: AGENT CONSOLE (PIPELINE RUNNER) -->
+    <!-- ============================================================== -->
+    <section id="view-console" class="tab-view block space-y-6">
+      
+      <!-- Intro Banner -->
+      <div class="glass-panel rounded-2xl p-6 relative overflow-hidden border-teal-500/20">
+        <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-bold font-mono text-white flex items-center gap-2">
+              <span class="text-teal-400">⚡</span> Multi-Agent DevOps Sandbox
+            </h2>
+            <p class="text-sm text-slate-400 mt-1 max-w-2xl">
+              Propose containerization specifications, Kubernetes deployment topologies, and CI/CD automation. Evaluated with automated security linting and 3-tier risk routing.
+            </p>
+          </div>
+          <!-- Preset Chips -->
+          <div class="flex flex-wrap gap-2 text-xs">
+            <span class="text-slate-400 self-center">Presets:</span>
+            <button onclick="loadPreset('fastapi')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-teal-500/20 text-slate-300 hover:text-teal-300 border border-slate-700 transition">FastAPI + Postgres</button>
+            <button onclick="loadPreset('nodejs')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-teal-500/20 text-slate-300 hover:text-teal-300 border border-slate-700 transition">NodeJS Express</button>
+            <button onclick="loadPreset('go')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-teal-500/20 text-slate-300 hover:text-teal-300 border border-slate-700 transition">Go Auth API</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left: Project Requirements (2 Cols) -->
+        <div class="lg:col-span-2 glass-panel rounded-2xl p-6 space-y-4">
+          <label class="block text-sm font-semibold text-slate-200">
+            Project Architecture Specification
+          </label>
+          <textarea id="input-desc" rows="5" class="w-full bg-[#080D1A] border border-slate-700 focus:border-teal-500 rounded-xl p-3.5 text-sm text-slate-200 font-mono placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-teal-500 transition" placeholder="Describe framework, dependencies, internal port, database, and health check requirements..."></textarea>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            <!-- GitHub Inspector -->
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1.5 flex items-center gap-1.5">
+                <i data-lucide="github" class="w-3.5 h-3.5"></i> Inspect GitHub Repository (Optional)
+              </label>
+              <div class="flex gap-2">
+                <input id="input-repo" type="text" placeholder="e.g. pallets/flask" class="flex-1 bg-[#080D1A] border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-teal-500">
+                <button onclick="inspectGitHubRepo()" id="btn-inspect-repo" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-300 rounded-lg flex items-center gap-1.5 transition">
+                  <i data-lucide="search" class="w-3.5 h-3.5"></i> Inspect
+                </button>
+              </div>
+              <div id="repo-status-pill" class="hidden mt-1.5 text-[11px] text-teal-400 flex items-center gap-1">
+                <i data-lucide="check-circle" class="w-3 h-3"></i> README context loaded into planner
+              </div>
+            </div>
+
+            <!-- Voice / Audio Preference -->
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1.5 flex items-center gap-1.5">
+                <i data-lucide="mic" class="w-3.5 h-3.5 text-teal-400"></i> Voice Audio Instructions (Optional)
+              </label>
+              <input type="file" id="input-audio" accept="audio/*" class="block w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-teal-400 hover:file:bg-slate-700 cursor-pointer">
+              <input id="input-voice-text" type="hidden" value="">
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Multimodal Vision Diagram Upload -->
+        <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between">
+              <label class="text-sm font-semibold text-slate-200 flex items-center gap-1.5">
+                <i data-lucide="image" class="w-4 h-4 text-teal-400"></i> Architecture Diagram
+              </label>
+              <span class="text-[10px] text-teal-400 font-mono uppercase bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/30">Multimodal</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">Upload a PNG or JPG diagram for Gemini visual layout extraction.</p>
+
+            <!-- Dropzone -->
+            <div id="vision-dropzone" class="mt-3 border-2 border-dashed border-slate-700 hover:border-teal-500 rounded-xl p-4 text-center cursor-pointer transition bg-[#080D1A]/50">
+              <input type="file" id="input-image" accept="image/*" class="hidden">
+              <div id="vision-placeholder" class="py-4">
+                <i data-lucide="upload-cloud" class="w-8 h-8 text-slate-500 mx-auto mb-2"></i>
+                <p class="text-xs text-slate-300">Click or drag diagram here</p>
+                <p class="text-[10px] text-slate-500 mt-0.5">PNG, JPG, WebP up to 10MB</p>
+              </div>
+              <div id="vision-preview-container" class="hidden">
+                <img id="vision-preview" class="max-h-36 mx-auto rounded-lg border border-slate-700 object-contain shadow-md">
+                <button type="button" onclick="removeVisionImage(event)" class="mt-2 text-[10px] text-rose-400 hover:underline">Remove image</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Run Button -->
+          <button onclick="triggerPipeline()" id="btn-run-pipeline" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white font-bold text-sm tracking-wider font-mono flex items-center justify-center gap-2 shadow-lg shadow-teal-500/25 transition transform active:scale-[0.98]">
+            <i data-lucide="zap" class="w-4 h-4"></i>
+            <span>TRIGGER MULTI-AGENT PIPELINE</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Execution Pipeline Step Progress (Shown when running) -->
+      <div id="pipeline-progress-container" class="hidden glass-panel rounded-2xl p-6 scanning-bar border-teal-500/30">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-3">
+            <span class="w-3 h-3 rounded-full bg-teal-400 pulse-dot"></span>
+            <span class="text-sm font-bold font-mono text-teal-300" id="pipeline-progress-status">Multi-Agent Squad Assembling...</span>
+          </div>
+          <span class="text-xs font-mono text-slate-400" id="pipeline-timer">Running</span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-center text-xs font-mono">
+          <div id="step-1" class="p-2.5 rounded-lg bg-slate-800/60 border border-slate-700/60 text-slate-400">1. RAG & Memory</div>
+          <div id="step-2" class="p-2.5 rounded-lg bg-slate-800/60 border border-slate-700/60 text-slate-400">2. Planner Vision</div>
+          <div id="step-3" class="p-2.5 rounded-lg bg-slate-800/60 border border-slate-700/60 text-slate-400">3. Coding Agent</div>
+          <div id="step-4" class="p-2.5 rounded-lg bg-slate-800/60 border border-slate-700/60 text-slate-400">4. Critic Review</div>
+          <div id="step-5" class="p-2.5 rounded-lg bg-slate-800/60 border border-slate-700/60 text-slate-400">5. Sandbox Lint</div>
+          <div id="step-6" class="p-2.5 rounded-lg bg-slate-800/60 border border-slate-700/60 text-slate-400">6. 3-Tier Route</div>
+        </div>
+      </div>
+
+      <!-- Pipeline Results Display Area -->
+      <div id="pipeline-results-container" class="hidden space-y-6">
+        
+        <!-- Escalation Banner -->
+        <div id="escalation-banner" class="rounded-2xl p-5 border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="flex items-center space-x-4">
+            <div id="escalation-icon-box" class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0">
+              <i id="escalation-icon" data-lucide="shield" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span id="escalation-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider font-mono"></span>
+                <span id="escalation-level-label" class="text-xs text-slate-400"></span>
+              </div>
+              <p id="escalation-message" class="text-sm text-slate-200 mt-1"></p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-3 self-end sm:self-center">
+            <button onclick="queueCurrentPipelineResult()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold font-mono text-slate-200 rounded-xl flex items-center gap-2 transition">
+              <i data-lucide="inbox" class="w-4 h-4 text-amber-400"></i> Add to Queue
+            </button>
+            <button onclick="instantApproveCurrentResult()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-xs font-bold font-mono text-white rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-500/20 transition">
+              <i data-lucide="check-check" class="w-4 h-4"></i> Instant Approve & Seal
+            </button>
+          </div>
+        </div>
+
+        <!-- Scores & Sandbox Linting Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- Explainable Quality Scores (1 Col) -->
+          <div class="glass-panel rounded-2xl p-6 space-y-4">
+            <h3 class="text-sm font-bold font-mono text-slate-200 flex items-center gap-2">
+              <i data-lucide="bar-chart-2" class="w-4 h-4 text-teal-400"></i> Explainable Quality Metrics
+            </h3>
+
+            <!-- AI Confidence Gauge -->
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-mono">
+                <span class="text-slate-400">AI Confidence:</span>
+                <span id="score-conf" class="text-teal-400 font-bold">0%</span>
+              </div>
+              <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div id="bar-conf" class="bg-teal-400 h-full transition-all duration-700" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Completeness -->
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-mono">
+                <span class="text-slate-400">Completeness:</span>
+                <span id="score-comp" class="text-emerald-400 font-bold">0%</span>
+              </div>
+              <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div id="bar-comp" class="bg-emerald-400 h-full transition-all duration-700" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Security Posture -->
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-mono">
+                <span class="text-slate-400">Security Score:</span>
+                <span id="score-sec" class="text-cyan-400 font-bold">0%</span>
+              </div>
+              <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div id="bar-sec" class="bg-cyan-400 h-full transition-all duration-700" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Readability -->
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-mono">
+                <span class="text-slate-400">Readability Score:</span>
+                <span id="score-read" class="text-blue-400 font-bold">0%</span>
+              </div>
+              <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div id="bar-read" class="bg-blue-400 h-full transition-all duration-700" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Hallucination Shield -->
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-mono">
+                <span class="text-slate-400">Hallucination Shield:</span>
+                <span id="score-shield" class="text-purple-400 font-bold">0%</span>
+              </div>
+              <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div id="bar-shield" class="bg-purple-400 h-full transition-all duration-700" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sandbox Pre-Flight Simulation (2 Cols) -->
+          <div class="lg:col-span-2 glass-panel rounded-2xl p-6 space-y-3 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-bold font-mono text-slate-200 flex items-center gap-2">
+                  <i data-lucide="terminal" class="w-4 h-4 text-teal-400"></i> Pre-Flight Simulation & Linting Sandbox
+                </h3>
+                <span id="sandbox-badge" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase"></span>
+              </div>
+              <p class="text-xs text-slate-400 mb-2">Automated checks executed against Docker syntax, Kubernetes schema, and GitHub Actions triggers.</p>
+              <div class="code-box p-3 h-48 overflow-y-auto">
+                <pre><code id="sandbox-logs" class="language-bash text-xs"></code></pre>
+              </div>
+            </div>
+
+            <!-- Agent Reasoning Footnote -->
+            <div id="needs-help-notice" class="hidden p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200">
+              <span class="font-bold">⚠️ AI Help Request:</span> <span id="needs-help-text"></span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Generated Assets Tabs (Code Viewer) -->
+        <div class="glass-panel rounded-2xl p-6 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-3 gap-3">
+            <div class="flex space-x-2">
+              <button onclick="switchAssetTab('docker')" id="btn-tab-docker" class="px-3.5 py-1.5 rounded-lg text-xs font-bold font-mono bg-teal-500/20 text-teal-400 border border-teal-500/40">🐳 Dockerfile</button>
+              <button onclick="switchAssetTab('k8s')" id="btn-tab-k8s" class="px-3.5 py-1.5 rounded-lg text-xs font-bold font-mono text-slate-400 hover:text-slate-200 border border-transparent">☸️ kubernetes.yaml</button>
+              <button onclick="switchAssetTab('cicd')" id="btn-tab-cicd" class="px-3.5 py-1.5 rounded-lg text-xs font-bold font-mono text-slate-400 hover:text-slate-200 border border-transparent">⛓️ GitHub CI/CD</button>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button onclick="copyCurrentAssetCode()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-300 flex items-center gap-1.5 transition">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Code
+              </button>
+              <button onclick="downloadCurrentAssetCode()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-300 flex items-center gap-1.5 transition">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i> Download
+              </button>
+            </div>
+          </div>
+
+          <!-- Code Viewers -->
+          <div id="asset-view-docker" class="code-box p-4 max-h-96">
+            <pre><code id="code-dockerfile" class="language-dockerfile"></code></pre>
+          </div>
+          <div id="asset-view-k8s" class="code-box p-4 max-h-96 hidden">
+            <pre><code id="code-k8s" class="language-yaml"></code></pre>
+          </div>
+          <div id="asset-view-cicd" class="code-box p-4 max-h-96 hidden">
+            <pre><code id="code-cicd" class="language-yaml"></code></pre>
+          </div>
+        </div>
+
+        <!-- Multi-Agent Discussion Logs (Collapsible) -->
+        <div class="glass-panel rounded-2xl p-6">
+          <details class="cursor-pointer group">
+            <summary class="flex items-center justify-between text-sm font-bold font-mono text-slate-300 list-none">
+              <span class="flex items-center gap-2">
+                <i data-lucide="message-square" class="w-4 h-4 text-teal-400"></i> Multi-Agent Conversation & Discussion Logs
+              </span>
+              <span class="text-xs text-slate-500 group-open:rotate-180 transition-transform">▼</span>
+            </summary>
+            <div class="code-box p-4 mt-3 max-h-72 overflow-y-auto">
+              <pre><code id="code-pipeline-logs" class="language-bash text-xs"></code></pre>
+            </div>
+          </details>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- TAB 2: AUDITOR APPROVAL QUEUE -->
+    <!-- ============================================================== -->
+    <section id="view-queue" class="tab-view hidden space-y-6">
+      
+      <!-- Top Bar: Filters & Search -->
+      <div class="glass-panel rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center space-x-2">
+          <span class="text-xs font-medium text-slate-400">Filter Status:</span>
+          <div class="flex bg-slate-900 rounded-lg p-1 border border-slate-800 text-xs">
+            <button onclick="filterQueue('all')" id="qfilter-all" class="px-3 py-1 rounded bg-teal-500/20 text-teal-300 font-medium">All</button>
+            <button onclick="filterQueue('Pending Review')" id="qfilter-pending" class="px-3 py-1 rounded text-slate-400 hover:text-white">Pending</button>
+            <button onclick="filterQueue('Approved')" id="qfilter-approved" class="px-3 py-1 rounded text-slate-400 hover:text-white">Approved</button>
+            <button onclick="filterQueue('Rejected')" id="qfilter-rejected" class="px-3 py-1 rounded text-slate-400 hover:text-white">Rejected</button>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-2.5"></i>
+            <input id="queue-search" oninput="searchQueue(this.value)" type="text" placeholder="Search project name..." class="pl-9 pr-3 py-1.5 bg-[#080D1A] border border-slate-700 rounded-lg text-xs font-mono text-slate-200 focus:outline-none focus:border-teal-500 w-56">
+          </div>
+          <button onclick="loadApprovalsQueue()" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 border border-slate-700">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Approvals List Grid -->
+      <div id="approvals-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="queue-empty-state" class="hidden glass-panel rounded-2xl p-12 text-center">
+        <i data-lucide="inbox" class="w-12 h-12 text-slate-600 mx-auto mb-3"></i>
+        <h3 class="text-base font-bold text-slate-300">Approval Queue Empty</h3>
+        <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Generate deployment assets in the Agent Console and queue them for audit oversight.</p>
+      </div>
+
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- TAB 3: PREFERENCE MEMORY & RAG KNOWLEDGE BASE -->
+    <!-- ============================================================== -->
+    <section id="view-memory" class="tab-view hidden space-y-6">
+      
+      <!-- Sub-tabs -->
+      <div class="flex space-x-2 border-b border-slate-800 pb-3">
+        <button onclick="switchMemorySubTab('prefs')" id="subtab-btn-prefs" class="px-4 py-2 rounded-lg text-xs font-bold font-mono bg-teal-500/20 text-teal-400 border border-teal-500/40">
+          🧠 Active Human Preferences (RLHF Memory)
+        </button>
+        <button onclick="switchMemorySubTab('rag')" id="subtab-btn-rag" class="px-4 py-2 rounded-lg text-xs font-bold font-mono text-slate-400 hover:text-slate-200 border border-transparent">
+          📚 RAG Knowledge Base (Approved Templates)
+        </button>
+      </div>
+
+      <!-- Sub-view 1: Learned Preferences -->
+      <div id="subview-prefs" class="space-y-4">
+        <div class="flex items-center justify-between">
+          <p class="text-xs text-slate-400">Rules extracted automatically from human code adjustments during audits. Fed into Coding Agent prompts.</p>
+          <button onclick="openAddPreferenceModal()" class="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-xs font-bold font-mono text-white flex items-center gap-1.5 transition">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Custom Rule
+          </button>
+        </div>
+
+        <div class="glass-panel rounded-2xl overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-900/90 text-slate-400 font-mono uppercase text-[11px] border-b border-slate-800">
+                <tr>
+                  <th class="p-3.5">ID</th>
+                  <th class="p-3.5">Rule Key</th>
+                  <th class="p-3.5">Preferred Setting</th>
+                  <th class="p-3.5">Origin / Rationale</th>
+                  <th class="p-3.5">Timestamp</th>
+                  <th class="p-3.5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="preferences-tbody" class="divide-y divide-slate-800/80">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sub-view 2: RAG Knowledge Base -->
+      <div id="subview-rag" class="hidden space-y-4">
+        <p class="text-xs text-slate-400">High-scoring approved templates indexed to guide future multi-agent generations via Retrieval-Augmented Generation.</p>
+        <div id="kb-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- TAB 4: TELEMETRY & ANALYTICS -->
+    <!-- ============================================================== -->
+    <section id="view-analytics" class="tab-view hidden space-y-6">
+      
+      <!-- KPI Top Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        
+        <div class="glass-panel rounded-2xl p-5 border-l-4 border-l-blue-500">
+          <div class="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Total Pipelines Run</div>
+          <div id="kpi-total-runs" class="text-2xl sm:text-3xl font-bold font-mono text-white mt-1">0</div>
+          <div class="text-[11px] text-blue-400 mt-1">Deployments evaluated</div>
+        </div>
+
+        <div class="glass-panel rounded-2xl p-5 border-l-4 border-l-emerald-500">
+          <div class="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Approval Success Rate</div>
+          <div id="kpi-success-rate" class="text-2xl sm:text-3xl font-bold font-mono text-emerald-400 mt-1">0%</div>
+          <div id="kpi-approved-count" class="text-[11px] text-emerald-500 mt-1">0 approved</div>
+        </div>
+
+        <div class="glass-panel rounded-2xl p-5 border-l-4 border-l-amber-500">
+          <div class="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Human Corrections</div>
+          <div id="kpi-corrections" class="text-2xl sm:text-3xl font-bold font-mono text-amber-400 mt-1">0</div>
+          <div class="text-[11px] text-amber-500 mt-1">RLHF Dataset Entries</div>
+        </div>
+
+        <div class="glass-panel rounded-2xl p-5 border-l-4 border-l-pink-500">
+          <div class="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Saved Engineering Time</div>
+          <div id="kpi-saved-hours" class="text-2xl sm:text-3xl font-bold font-mono text-pink-400 mt-1">0 hrs</div>
+          <div class="text-[11px] text-pink-500 mt-1">Developer velocity gain</div>
+        </div>
+
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Quality & Hallucination Trend -->
+        <div class="glass-panel rounded-2xl p-6">
+          <h3 class="text-sm font-bold font-mono text-slate-200 mb-4 flex items-center gap-2">
+            <i data-lucide="trending-up" class="w-4 h-4 text-teal-400"></i> Quality & Hallucination Shield Trend
+          </h3>
+          <div class="h-64">
+            <canvas id="chart-quality-trend"></canvas>
+          </div>
+        </div>
+
+        <!-- Latency Speed -->
+        <div class="glass-panel rounded-2xl p-6">
+          <h3 class="text-sm font-bold font-mono text-slate-200 mb-4 flex items-center gap-2">
+            <i data-lucide="zap" class="w-4 h-4 text-cyan-400"></i> Agent Response Speed (Seconds)
+          </h3>
+          <div class="h-64">
+            <canvas id="chart-response-time"></canvas>
+          </div>
+        </div>
+
+        <!-- AI Cost Consumption -->
+        <div class="glass-panel rounded-2xl p-6">
+          <h3 class="text-sm font-bold font-mono text-slate-200 mb-4 flex items-center gap-2">
+            <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-400"></i> Cumulative AI Token Cost ($)
+          </h3>
+          <div class="h-64">
+            <canvas id="chart-token-cost"></canvas>
+          </div>
+        </div>
+
+        <!-- Deployment Decision Breakdown -->
+        <div class="glass-panel rounded-2xl p-6">
+          <h3 class="text-sm font-bold font-mono text-slate-200 mb-4 flex items-center gap-2">
+            <i data-lucide="pie-chart" class="w-4 h-4 text-amber-400"></i> Deployment Decisions Distribution
+          </h3>
+          <div class="h-64">
+            <canvas id="chart-decisions"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Human Correction Insights Table -->
+      <div class="glass-panel rounded-2xl p-6 space-y-4">
+        <h3 class="text-sm font-bold font-mono text-slate-200 flex items-center gap-2">
+          <i data-lucide="git-commit" class="w-4 h-4 text-teal-400"></i> Human Correction Insights (RLHF Learning Log)
+        </h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-900/90 text-slate-400 font-mono uppercase text-[11px] border-b border-slate-800">
+              <tr>
+                <th class="p-3">Project</th>
+                <th class="p-3">AI Draft Snippet</th>
+                <th class="p-3">Human Correction</th>
+                <th class="p-3">Auditor Reason</th>
+                <th class="p-3">Timestamp</th>
+              </tr>
+            </thead>
+            <tbody id="feedback-tbody" class="divide-y divide-slate-800/80">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- TAB 5: BLOCKCHAIN AUDIT LEDGER -->
+    <!-- ============================================================== -->
+    <section id="view-blockchain" class="tab-view hidden space-y-6">
+      
+      <!-- Top Integrity Card -->
+      <div class="glass-panel rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-teal-500/20">
+        <div>
+          <h2 class="text-lg font-bold font-mono text-white flex items-center gap-2">
+            <i data-lucide="link" class="w-5 h-5 text-teal-400"></i> SHA-256 Immutable Blockchain Ledger
+          </h2>
+          <p class="text-xs text-slate-400 mt-1 max-w-xl">
+            Every deployment generation, edit, approval, and rejection is permanently sealed with SHA-256 cryptographic hashes linking back to the genesis block.
+          </p>
+        </div>
+        
+        <button onclick="verifyChainIntegrity()" id="btn-verify-chain" class="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs font-mono flex items-center gap-2 shadow-lg shadow-teal-500/20 transition">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          <span>VERIFY CHAIN INTEGRITY</span>
+        </button>
+      </div>
+
+      <!-- Verification Result Alert (Hidden initially) -->
+      <div id="chain-verify-alert" class="hidden rounded-xl p-4 border text-xs">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Chained Blocks View -->
+      <div id="blockchain-list" class="space-y-4">
+        <!-- Rendered dynamically -->
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: AUDITOR INTERACTIVE WORKSPACE DRAWER -->
+  <!-- ============================================================== -->
+  <div id="modal-auditor" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-5xl max-h-[92vh] rounded-2xl flex flex-col shadow-2xl border-slate-700 overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-xl bg-teal-500/20 border border-teal-500/40 flex items-center justify-center text-teal-400">
+            <i data-lucide="user-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 id="modal-project-title" class="text-base font-bold text-white font-mono">Project Audit</h3>
+            <p id="modal-project-meta" class="text-xs text-slate-400">Review generated artifacts</p>
+          </div>
+        </div>
+        <button onclick="closeAuditorModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-6 overflow-y-auto space-y-6 flex-1">
+        
+        <!-- Persona & Risk Meta -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl bg-[#080D1A] border border-slate-800">
+          <div>
+            <label class="block text-xs font-bold text-slate-400 uppercase font-mono mb-1">Auditor Persona</label>
+            <select id="modal-persona-select" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-teal-300 font-mono focus:outline-none">
+              <option value="Junior Auditor">Junior Auditor</option>
+              <option value="Senior Tech Lead" selected>Senior Tech Lead</option>
+              <option value="Domain Expert Security Officer">Domain Expert Security Officer</option>
+            </select>
+          </div>
+          <div>
+            <span class="block text-xs font-bold text-slate-400 uppercase font-mono mb-1">Required Level</span>
+            <span id="modal-required-level" class="text-xs font-mono text-slate-200"></span>
+          </div>
+          <div>
+            <span class="block text-xs font-bold text-slate-400 uppercase font-mono mb-1">Confidence / Risk</span>
+            <span id="modal-conf-risk" class="text-xs font-mono text-slate-200"></span>
+          </div>
+        </div>
+
+        <!-- AI Explanation & Evidence -->
+        <div class="text-xs text-slate-300 bg-slate-900/50 p-3.5 rounded-xl border border-slate-800">
+          <span class="font-bold text-teal-400 font-mono">AI Assessment:</span>
+          <span id="modal-explanation"></span>
+        </div>
+
+        <!-- Editable Code Tabs -->
+        <div>
+          <div class="flex space-x-2 border-b border-slate-800 pb-2 mb-3">
+            <button onclick="switchModalCodeTab('docker')" id="mcode-tab-docker" class="px-3 py-1 rounded text-xs font-mono font-bold bg-teal-500/20 text-teal-400 border border-teal-500/40">Dockerfile</button>
+            <button onclick="switchModalCodeTab('k8s')" id="mcode-tab-k8s" class="px-3 py-1 rounded text-xs font-mono font-bold text-slate-400 hover:text-slate-200 border border-transparent">Kubernetes YAML</button>
+            <button onclick="switchModalCodeTab('cicd')" id="mcode-tab-cicd" class="px-3 py-1 rounded text-xs font-mono font-bold text-slate-400 hover:text-slate-200 border border-transparent">GitHub CI/CD</button>
+          </div>
+
+          <div id="mcode-view-docker">
+            <textarea id="modal-edit-docker" rows="10" class="w-full bg-[#080D1A] border border-slate-700 rounded-xl p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-teal-500"></textarea>
+          </div>
+          <div id="mcode-view-k8s" class="hidden">
+            <textarea id="modal-edit-k8s" rows="10" class="w-full bg-[#080D1A] border border-slate-700 rounded-xl p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-teal-500"></textarea>
+          </div>
+          <div id="mcode-view-cicd" class="hidden">
+            <textarea id="modal-edit-cicd" rows="10" class="w-full bg-[#080D1A] border border-slate-700 rounded-xl p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-teal-500"></textarea>
+          </div>
+        </div>
+
+        <!-- RLHF Human Correction Reasoning -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 font-mono mb-1 flex items-center gap-1.5">
+            <i data-lucide="edit-3" class="w-3.5 h-3.5 text-teal-400"></i> RLHF Correction Reason & Instructions
+          </label>
+          <p class="text-[11px] text-slate-400 mb-2">If you modified any code above, explain why. HAULT automatically extracts preference policies from your changes.</p>
+          <textarea id="modal-correction-reason" rows="2" placeholder="E.g., Updated docker base image to alpine. Fixed security permissions on port binding." class="w-full bg-[#080D1A] border border-slate-700 rounded-xl p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-teal-500"></textarea>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-4 border-t border-slate-800 bg-slate-900/90 flex items-center justify-between">
+        <a id="modal-pdf-download-link" href="#" target="_blank" class="text-xs text-teal-400 hover:underline flex items-center gap-1">
+          <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Download PDF Report
+        </a>
+
+        <div class="flex items-center space-x-3">
+          <button onclick="submitAuditorAction('reject')" class="px-4 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/40 text-xs font-bold font-mono transition">
+            ❌ Reject Deployment
+          </button>
+          <button onclick="submitAuditorAction('approve')" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold font-mono shadow-lg shadow-emerald-500/20 transition">
+            🤝 Approve & Commit
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: ADD CUSTOM PREFERENCE -->
+  <!-- ============================================================== -->
+  <div id="modal-add-pref" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-md rounded-2xl p-6 space-y-4 shadow-2xl border-slate-700">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-white font-mono flex items-center gap-2">
+          <i data-lucide="plus-circle" class="w-4 h-4 text-teal-400"></i> Inject Custom Preference
+        </h3>
+        <button onclick="closeAddPreferenceModal()" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs font-mono">
+        <div>
+          <label class="block text-slate-400 mb-1">Preference Key</label>
+          <input id="new-pref-key" type="text" placeholder="e.g. node_base_image" class="w-full bg-[#080D1A] border border-slate-700 rounded-lg p-2.5 text-slate-200">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Preference Value</label>
+          <input id="new-pref-value" type="text" placeholder="e.g. node:18-alpine" class="w-full bg-[#080D1A] border border-slate-700 rounded-lg p-2.5 text-slate-200">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Description / Policy Reason</label>
+          <input id="new-pref-desc" type="text" placeholder="e.g. Standardize alpine builds for reduced attack surface" class="w-full bg-[#080D1A] border border-slate-700 rounded-lg p-2.5 text-slate-200">
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-2 pt-2">
+        <button onclick="closeAddPreferenceModal()" class="px-4 py-2 bg-slate-800 text-xs rounded-lg text-slate-300">Cancel</button>
+        <button onclick="submitNewPreference()" class="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-xs rounded-lg font-bold text-white">Save Rule</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: INSPECT RAG TEMPLATE -->
+  <!-- ============================================================== -->
+  <div id="modal-view-rag" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-4xl max-h-[85vh] rounded-2xl flex flex-col shadow-2xl border-slate-700 overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
+        <h3 id="rag-modal-title" class="text-sm font-bold text-white font-mono">Approved Pattern</h3>
+        <button onclick="closeRagModal()" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto space-y-4 flex-1">
+        <div class="code-box p-4 max-h-80 overflow-y-auto">
+          <pre><code id="rag-modal-code" class="language-dockerfile text-xs"></code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- Application Logic -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

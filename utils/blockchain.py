@@ -9,10 +9,13 @@ def calculate_hash(block_index, timestamp, data_json, prev_hash):
     block_string = f"{block_index}{timestamp}{data_json}{prev_hash}"
     return hashlib.sha256(block_string.encode('utf-8')).hexdigest()
 
-def init_blockchain():
+def init_blockchain(db_conn=None):
     """Ensure the blockchain has at least the genesis block."""
-    cursor.execute("SELECT COUNT(*) FROM blockchain")
-    count = cursor.fetchone()[0]
+    cur = db_conn.cursor() if db_conn else cursor
+    c_obj = db_conn if db_conn else conn
+    
+    cur.execute("SELECT COUNT(*) FROM blockchain")
+    count = cur.fetchone()[0]
     if count == 0:
         # Create Genesis Block
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -20,19 +23,21 @@ def init_blockchain():
         prev_hash = "0" * 64
         block_hash = calculate_hash(0, timestamp, data, prev_hash)
         
-        cursor.execute("""
+        cur.execute("""
         INSERT INTO blockchain (block_index, timestamp, data_json, prev_hash, block_hash)
         VALUES (?, ?, ?, ?, ?)
         """, (0, timestamp, data, prev_hash, block_hash))
-        conn.commit()
+        c_obj.commit()
 
-def add_blockchain_block(data_dict):
+def add_blockchain_block(data_dict, db_conn=None):
     """Add a new block to the blockchain ledger."""
-    init_blockchain()
+    init_blockchain(db_conn)
+    cur = db_conn.cursor() if db_conn else cursor
+    c_obj = db_conn if db_conn else conn
     
     # Get last block to fetch prev_hash and block_index
-    cursor.execute("SELECT block_index, block_hash FROM blockchain ORDER BY id DESC LIMIT 1")
-    row = cursor.fetchone()
+    cur.execute("SELECT block_index, block_hash FROM blockchain ORDER BY id DESC LIMIT 1")
+    row = cur.fetchone()
     last_index = row[0]
     prev_hash = row[1]
     
@@ -42,18 +47,20 @@ def add_blockchain_block(data_dict):
     
     new_hash = calculate_hash(new_index, timestamp, data_json, prev_hash)
     
-    cursor.execute("""
+    cur.execute("""
     INSERT INTO blockchain (block_index, timestamp, data_json, prev_hash, block_hash)
     VALUES (?, ?, ?, ?, ?)
     """, (new_index, timestamp, data_json, prev_hash, new_hash))
-    conn.commit()
+    c_obj.commit()
     return new_hash
 
-def verify_chain_integrity():
+def verify_chain_integrity(db_conn=None):
     """Recalculates all hashes in the blockchain to verify that no records have been tampered with."""
-    init_blockchain()
-    cursor.execute("SELECT block_index, timestamp, data_json, prev_hash, block_hash FROM blockchain ORDER BY id ASC")
-    blocks = cursor.fetchall()
+    init_blockchain(db_conn)
+    cur = db_conn.cursor() if db_conn else cursor
+    
+    cur.execute("SELECT block_index, timestamp, data_json, prev_hash, block_hash FROM blockchain ORDER BY id ASC")
+    blocks = cur.fetchall()
     
     report = []
     is_valid = True

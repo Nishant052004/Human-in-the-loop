@@ -9,9 +9,20 @@ DB_PATH = "approval.db"
 conn = sqlite3.connect(
     DB_PATH,
     check_same_thread=False,
-    timeout=10.0
+    timeout=20.0
 )
+conn.execute("PRAGMA journal_mode=WAL")
+conn.execute("PRAGMA busy_timeout=5000")
 cursor = conn.cursor()
+
+def get_db_connection():
+    """Return a thread-safe connection with Row factory and WAL mode."""
+    c = sqlite3.connect(DB_PATH, check_same_thread=False, timeout=20.0)
+    c.execute("PRAGMA journal_mode=WAL")
+    c.execute("PRAGMA busy_timeout=5000")
+    c.row_factory = sqlite3.Row
+    return c
+
 
 # Create approvals table (advanced version)
 cursor.execute("""
